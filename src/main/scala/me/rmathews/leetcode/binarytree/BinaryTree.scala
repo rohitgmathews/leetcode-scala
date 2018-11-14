@@ -72,6 +72,12 @@ object BinaryTree extends App {
     )
   )
 
+  /**
+    * Returns inverted copy of binary tree.
+    * The intuition here is to recursively swap left and right nodes
+    * @param t Binary tree to invert
+    * @tparam A The binary tree's parameter type
+    */
   def invertTree[A](t: Tree[A]): Tree[A] = t match {
     case EmptyTree => EmptyTree
     case Node(entry, left, right) => Node(entry, invertTree(right), invertTree(left))
