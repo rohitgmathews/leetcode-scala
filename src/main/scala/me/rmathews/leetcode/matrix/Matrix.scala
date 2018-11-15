@@ -1,11 +1,14 @@
 package me.rmathews.leetcode.matrix
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 
 /**
   * Solutions to select matrix related questions in leetcode
   */
 object Matrix {
+
+  type Matrix[A] = Array[Array[A]]
 
   /**
     * Given a m x n matrix, if an element is 0, sets its entire row and column to 0 in place
@@ -70,6 +73,65 @@ object Matrix {
     }
     val (numRows, numCols) = getDimensions(matrix)
     go(0, numCols - 1, 0, numRows - 1, List.empty[A])
+  }
+
+  /** Returns the minimum path sum while traversing a matrix from top left to bottom right
+    * Reference: https://leetcode.com/problems/minimum-path-sum/
+    * @param matrix Input matrix
+    */
+  def getMinimumPathSum(matrix: Matrix[Int]): Int = {
+    val (numRows, numCols) = getDimensions(matrix)
+    val memo = mutable.Map.empty[(Int, Int), Int]
+    for {
+      rowIdx <- 0 until numRows
+      colIdx <- 0 until numCols
+    } (rowIdx, colIdx) match {
+      case (0, 0) => memo.update((0, 0), matrix(0)(0))
+      case (0, _) =>
+        // In the first row, sum to current cell is sum of all cells to that point
+        memo.update((rowIdx, colIdx), matrix(rowIdx)(colIdx) + memo(rowIdx, colIdx - 1))
+      case (_, 0) =>
+        // In the first column, sum to current cell is sum of all cells along that column to that cell
+        memo.update((rowIdx, colIdx), matrix(rowIdx)(colIdx) + memo(rowIdx - 1, colIdx))
+      case _ =>
+        // Sum path to cell is minimum of path to cell above and path to cell on its left
+        memo.update(
+        (rowIdx, colIdx),
+        matrix(rowIdx)(colIdx) + Math.min(memo(rowIdx, colIdx - 1), memo(rowIdx - 1, colIdx))
+      )
+    }
+    if (memo.isEmpty) 0
+    else memo(numRows - 1, numCols - 1)
+  }
+
+  /** Returns the number of unique paths from top left to bottom right
+    * Reference: https://leetcode.com/problems/unique-paths-ii/
+    * @param matrix Input matrix
+    * @return
+    */
+  def uniquePathsWithObstacles(matrix: Matrix[Boolean]): Int = {
+    val (numRows, numCols) = getDimensions(matrix)
+    val memo = mutable.Map.empty[(Int, Int), Int]
+    for {
+      rowIdx <- 0 until numRows
+      colIdx <- 0 until numCols
+    } (rowIdx, colIdx) match {
+      case (0, 0) => memo.update((0, 0), if (!matrix(0)(0)) 1 else 0)
+      case (0, _) =>
+        // In the first row, current cell is reachable if all the cells till here are reachable
+        memo.update((rowIdx, colIdx), if (!matrix(rowIdx)(colIdx)) memo(rowIdx, colIdx - 1) else 0)
+      case (_, 0) =>
+        // In the first column, current cell is reachable if all the cells till here are reachable
+        memo.update((rowIdx, colIdx), if (!matrix(rowIdx)(colIdx)) memo(rowIdx - 1, colIdx) else 0)
+      case _ =>
+        // Number of paths to any other cell is number of paths to cell above and paths to cell on its left
+        memo.update(
+          (rowIdx, colIdx),
+          if (!matrix(rowIdx)(colIdx)) memo(rowIdx, colIdx - 1) + memo(rowIdx - 1, colIdx) else 0
+        )
+    }
+    if (memo.isEmpty) 0
+    else memo(numRows - 1, numCols - 1)
   }
 
   private def getDimensions[A](matrix: Array[Array[A]]): (Int, Int) =

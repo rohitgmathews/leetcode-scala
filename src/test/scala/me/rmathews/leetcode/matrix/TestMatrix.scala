@@ -55,4 +55,32 @@ class TestMatrix extends FlatSpec {
     assertResult(List.empty[Int])(actualOutput)
   }
 
+  "minimumPathSum" should "calculate the minimum path sum for 2D array" in {
+    val input = Array(
+      Array(1, 2, 3, 4),
+      Array(5, 6, 7, 8),
+      Array(10, 11, 12, 13)
+    )
+    val actualOutput = Matrix.getMinimumPathSum(input)
+    assertResult(31)(actualOutput)
+  }
+
+  "minimumPathSum" should "calculate the minimum path sum for array with 1 row " in {
+    val input = Array(
+      Array(1, 2, 3, 4)
+    )
+    val actualOutput = Matrix.getMinimumPathSum(input)
+    assertResult(10)(actualOutput)
+  }
+
+  "uniquePathWithObstacles" should "return number of paths to destination" in {
+    val input = Array(
+      Array(false, false, false),
+      Array(false, true, false),
+      Array(false, false, false)
+    )
+    val actualResult = Matrix.uniquePathsWithObstacles(input)
+    assertResult(2)(actualResult)
+  }
+
 }
