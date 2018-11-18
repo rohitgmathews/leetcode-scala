@@ -7,6 +7,7 @@ import scala.collection.mutable
   * Solutions to select matrix related questions in leetcode
   */
 object Matrix {
+  import implicits._
 
   type Matrix[A] = Array[Array[A]]
 
@@ -134,6 +135,140 @@ object Matrix {
     else memo(numRows - 1, numCols - 1)
   }
 
-  private def getDimensions[A](matrix: Array[Array[A]]): (Int, Int) =
+  /** Returns the number of dis-joint sets of 1 in matrix comprising of 1's and 0's
+    * Reference: https://leetcode.com/problems/number-of-islands/
+    * @param matrix Input matrix
+    * @return
+    */
+  def numberOfIslands(matrix: Matrix[Int]): Int = {
+    val (numRows, numCols) = getDimensions(matrix)
+    val numCells = numRows * numCols
+    def getRoots(startIdx: Int,
+                 currIdx: Int,
+                 acc: Map[Int, Int],
+                 visited: Set[Int]): (Map[Int, Int], Set[Int]) = {
+      if (currIdx < 0 || currIdx > numCells - 1) (acc, visited + currIdx)
+      else if (matrix.get(currIdx) == 0) (acc, visited + currIdx)
+      else {
+        val (left, vLeft) = if (!visited.contains(currIdx - 1)) getRoots(startIdx, currIdx - 1, acc, visited + currIdx) else (acc, visited + currIdx)
+        val (right, vRight) = if (!vLeft.contains(currIdx + 1)) getRoots(startIdx, currIdx + 1, left, vLeft + currIdx) else (left, vLeft + currIdx)
+        val (top, vTop) = if (!vRight.contains(currIdx - numCols)) getRoots(startIdx, currIdx - numCols, right, vRight + currIdx) else (right, vRight + currIdx)
+        val (down, vDown) = if (!vTop.contains(currIdx + numCols)) getRoots(startIdx, currIdx + numCols, top, vTop + currIdx) else (top, vTop + currIdx)
+        (
+          down + (currIdx -> startIdx),
+          vDown
+        )
+      }
+    }
+    val (uf, _) = (0 until numCells).foldLeft((Map.empty[Int, Int], Set.empty[Int])) { case ((mapSoFar, visitedSoFar), currIdx) =>
+      if (!visitedSoFar.contains(currIdx)) getRoots(currIdx, currIdx, mapSoFar, visitedSoFar)
+      else (mapSoFar, visitedSoFar)
+    }
+    uf.values.toSet.size
+  }
+
+  /** Returns a new matrix after capturing all surrounded regions
+    * Reference: https://leetcode.com/problems/surrounded-regions/
+    * Intuition: All nodes we can reach from a border cell which is an 'O' is not surrounded by 'X'.
+    * For each of these we do a depth first search, and, mark them as 'O' in result array. We then mark remaining as 'X'
+    * @param matrix Input matrix
+    */
+  def captureSurroundedRegions(matrix: Matrix[Char]): Matrix[Char] = {
+    val (numRows, numCols) = getDimensions(matrix)
+    val numCells = numRows * numCols
+    val result = Array.fill(numRows, numCols)('-')
+    def isBorderElement(idx: Int): Boolean =
+      idx < numCols ||                  // first row
+      idx > (numCells - numCols) ||     // last row
+      idx % numCols == 0 ||             // left border
+      (idx + 1) % numCols == 0          // right border
+    def dfs(currIdx: Int): Unit =
+      if (currIdx >= 0 && currIdx < numCells && result.get(currIdx) == '-') {
+        if (matrix.get(currIdx) == 'O') {
+          result(currIdx / numCols)(currIdx % numCols) = 'O'
+          dfs(currIdx - 1)
+          dfs(currIdx + 1)
+          dfs(currIdx - numCols)
+          dfs(currIdx + numCols)
+        }
+      }
+    for {
+      idx <- 0 until numCells
+      if isBorderElement(idx) && matrix.get(idx) == 'O'
+    } dfs(idx)
+    for {
+      rowIdx <- 0 until numRows
+      colIdx <- 0 until numCols
+      if result(rowIdx)(colIdx) != 'O'
+    } {
+      result(rowIdx)(colIdx) = 'X'
+    }
+    result
+  }
+
+  /** Returns the area of maximal rectangle in matrix of 1's and 0's
+    *
+    * Reference: [[https://leetcode.com/problems/maximal-rectangle/]]
+    * @param matrix Input matrix
+    */
+  def maximalRectangle(matrix: Matrix[Int]): Int = {
+    // Intuition: We can treat every row as a histogram, and calculate the max area under said histogram
+    matrix match {
+      case Array(firstRow, remaining @ _*) =>
+        val areaUnderFirstRow = maxAreaInHistogram(firstRow)
+        val (_, result) = remaining.foldLeft((firstRow, areaUnderFirstRow)) { case ((heightAbove, maxSoFar), currentRow) =>
+          val currentHistogram = heightAbove.zip(currentRow) map {
+            case (_, 0) => 0
+            case (x, y) => x + y
+          }
+          (currentHistogram, Math.max(maxSoFar, maxAreaInHistogram(currentHistogram)))
+        }
+        result
+      case _ => 0
+    }
+  }
+
+  def maxAreaInHistogram(hist: Array[Int]): Int = {
+    @tailrec
+    def go(currIdx: Int, barsWithLowerHeight: List[Int], maxArea: Int): Int =
+      if (currIdx < hist.length) barsWithLowerHeight match {
+        case Nil => go(currIdx + 1, List(currIdx), maxArea)
+        case head :: _ if hist(currIdx) >= hist(head) => go(currIdx + 1, currIdx :: barsWithLowerHeight, maxArea)
+        case head :: tail =>
+          /* For every rectangle with height greater than current, calculate area formed by rectangle
+             where the greater rectangle is the height of the rectangle. The right boundary (first element on right
+             with a lower height) for such a rectangle is this node, and the left boundary is the element
+             in the stack before said rectangle.
+          */
+          val width = currIdx - tail.headOption.getOrElse(-1) - 1
+          val currentArea = width * hist(head)
+          go(currIdx, tail, Math.max(currentArea, maxArea))
+      }
+      else barsWithLowerHeight match {
+        case Nil => maxArea
+        case head :: tail =>
+          val width = currIdx - tail.headOption.getOrElse(-1) - 1
+          val currentArea = width * hist(head)
+          go(currIdx, tail, Math.max(currentArea, maxArea))
+      }
+    go(0, List.empty[Int], 0)
+  }
+
+  def getDimensions[A](matrix: Array[Array[A]]): (Int, Int) =
     (matrix.length, matrix.headOption.map(_.length).getOrElse(0))
+
+  private def get2DIndices(idx: Int, numCols: Int): (Int, Int) = (idx / numCols, idx % numCols)
+
+  object implicits {
+    implicit class MatrixWithGet[A](matrix: Matrix[A]) {
+      def get(idx: Int): A = {
+        val (rowIdx, colIdx) = get2DIndices(idx, matrix.headOption.map(_.length).getOrElse(0))
+        matrix(rowIdx)(colIdx)
+      }
+    }
+  }
+
+
+
+
 }

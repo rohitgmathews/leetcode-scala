@@ -2,6 +2,8 @@ package me.rmathews.leetcode.matrix
 
 import org.scalatest.FlatSpec
 
+import scala.collection.mutable.ListBuffer
+
 class TestMatrix extends FlatSpec {
 
   "setZeroes" should "set rows and columns to 0 as necessary" in {
@@ -80,6 +82,93 @@ class TestMatrix extends FlatSpec {
       Array(false, false, false)
     )
     val actualResult = Matrix.uniquePathsWithObstacles(input)
+    assertResult(2)(actualResult)
+  }
+
+  "numberOfIslands" should "return 1 island when there is just 1" in {
+    val input = Array(
+      Array(1, 1, 1, 1, 0),
+      Array(1, 1, 0, 1, 0),
+      Array(1, 1, 0, 0, 0),
+      Array(0, 0, 0, 0, 0)
+    )
+    val actualResult = Matrix.numberOfIslands(input)
+    assertResult(1)(actualResult)
+  }
+
+  "numberOfIslands" should "return 3 islands when there are 3" in {
+    val input = Array(
+      Array(1, 1, 0, 0, 0),
+      Array(1, 1, 0, 0, 0),
+      Array(0, 0, 1, 0, 0),
+      Array(0, 0, 0, 1, 1)
+    )
+    val actualResult = Matrix.numberOfIslands(input)
+    assertResult(3)(actualResult)
+  }
+
+  "captureSurroundedRegions" should "surround all regions" in {
+    val input = Array(
+      Array('X', 'X', 'X', 'X'),
+      Array('X', 'O', 'O', 'X'),
+      Array('X', 'X', 'O', 'X'),
+      Array('X', 'O', 'X', 'X')
+    )
+    val expected = Array(
+      Array('X', 'X', 'X', 'X'),
+      Array('X', 'X', 'X', 'X'),
+      Array('X', 'X', 'X', 'X'),
+      Array('X', 'O', 'X', 'X')
+    )
+    val actualResult = Matrix.captureSurroundedRegions(input)
+      assertResult(expected)(actualResult)
+  }
+
+  "captureSurroundedRegions" should "surround no regions" in {
+    val input = Array(
+      Array('X', 'X', 'O', 'X'),
+      Array('X', 'O', 'O', 'X'),
+      Array('X', 'X', 'O', 'X'),
+      Array('X', 'O', 'X', 'X')
+    )
+    val expected = Array(
+      Array('X', 'X', 'O', 'X'),
+      Array('X', 'O', 'O', 'X'),
+      Array('X', 'X', 'O', 'X'),
+      Array('X', 'O', 'X', 'X')
+    )
+    val actualResult = Matrix.captureSurroundedRegions(input)
+    assertResult(expected)(actualResult)
+  }
+
+  "maxAreaInHistogram" should "get max area in regular histogram"  in {
+    val input = Array(1, 2, 3, 5, 2, 1)
+    val actualResult = Matrix.maxAreaInHistogram(input)
+    assertResult(8)(actualResult)
+  }
+
+  "maxAreaInHistogram" should "get max area in increasing histogram"  in {
+    val input = Array(2, 4, 6, 8)
+    val actualResult = Matrix.maxAreaInHistogram(input)
+    assertResult(12)(actualResult)
+  }
+
+  "maximalRectangle" should "return max area when matrix has multiple rows" in {
+    val input = Array(
+      Array(0, 0, 1, 1),
+      Array(0, 0, 1, 1),
+      Array(0, 1, 1, 1),
+      Array(0, 1, 1, 1)
+    )
+    val actualResult = Matrix.maximalRectangle(input)
+    assertResult(8)(actualResult)
+  }
+
+  "maximalRectangle" should "return max area when matrix has one row" in {
+    val input = Array(
+      Array(0, 0, 1, 1)
+    )
+    val actualResult = Matrix.maximalRectangle(input)
     assertResult(2)(actualResult)
   }
 
