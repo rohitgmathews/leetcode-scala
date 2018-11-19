@@ -13,7 +13,8 @@ object Matrix {
 
   /**
     * Given a m x n matrix, if an element is 0, sets its entire row and column to 0 in place
-    * Reference: https://leetcode.com/problems/set-matrix-zeroes/
+    *
+    * Reference: [[https://leetcode.com/problems/set-matrix-zeroes/]]
     * @param matrix An m x n matrix of integers
     */
   def setZeroes(matrix: Array[Array[Int]]): Unit = {
@@ -38,7 +39,8 @@ object Matrix {
   }
 
   /** Given a matrix of m x n elements (m rows, n columns), returns a seq of elements of the matrix in spiral order
-    * Reference: https://leetcode.com/problems/spiral-matrix/
+    *
+    * Reference: [[https://leetcode.com/problems/spiral-matrix/]]
     * @param matrix Input matrix
     * @tparam A Parameter type of the matrix
     */
@@ -77,7 +79,8 @@ object Matrix {
   }
 
   /** Returns the minimum path sum while traversing a matrix from top left to bottom right
-    * Reference: https://leetcode.com/problems/minimum-path-sum/
+    *
+    * Reference: [[https://leetcode.com/problems/minimum-path-sum/]]
     * @param matrix Input matrix
     */
   def getMinimumPathSum(matrix: Matrix[Int]): Int = {
@@ -106,7 +109,8 @@ object Matrix {
   }
 
   /** Returns the number of unique paths from top left to bottom right
-    * Reference: https://leetcode.com/problems/unique-paths-ii/
+    *
+    * Reference: [[https://leetcode.com/problems/unique-paths-ii/]]
     * @param matrix Input matrix
     * @return
     */
@@ -136,7 +140,8 @@ object Matrix {
   }
 
   /** Returns the number of dis-joint sets of 1 in matrix comprising of 1's and 0's
-    * Reference: https://leetcode.com/problems/number-of-islands/
+    *
+    * Reference: [[https://leetcode.com/problems/number-of-islands/]]
     * @param matrix Input matrix
     * @return
     */
@@ -168,7 +173,8 @@ object Matrix {
   }
 
   /** Returns a new matrix after capturing all surrounded regions
-    * Reference: https://leetcode.com/problems/surrounded-regions/
+    *
+    * Reference: [[https://leetcode.com/problems/surrounded-regions/]]
     * Intuition: All nodes we can reach from a border cell which is an 'O' is not surrounded by 'X'.
     * For each of these we do a depth first search, and, mark them as 'O' in result array. We then mark remaining as 'X'
     * @param matrix Input matrix
@@ -206,12 +212,12 @@ object Matrix {
     result
   }
 
-  /** Returns the area of maximal rectangle in matrix of 1's and 0's
+  /** Returns the area of maximal rectangle formed by 1's in matrix of 1's and 0's
     *
     * Reference: [[https://leetcode.com/problems/maximal-rectangle/]]
     * @param matrix Input matrix
     */
-  def maximalRectangle(matrix: Matrix[Int]): Int = {
+  def maximalRectangle(matrix: Matrix[Int]): Int =
     // Intuition: We can treat every row as a histogram, and calculate the max area under said histogram
     matrix match {
       case Array(firstRow, remaining @ _*) =>
@@ -226,7 +232,6 @@ object Matrix {
         result
       case _ => 0
     }
-  }
 
   def maxAreaInHistogram(hist: Array[Int]): Int = {
     @tailrec
@@ -252,6 +257,32 @@ object Matrix {
           go(currIdx, tail, Math.max(currentArea, maxArea))
       }
     go(0, List.empty[Int], 0)
+  }
+
+  /** Returns the area of largest square of 1's in a matrix of 1's and 0's
+    *
+    * Reference: [[https://leetcode.com/problems/maximal-square/]]
+    * @param matrix Input matrix
+    */
+  def maximalSquare(matrix: Matrix[Int]): Int = matrix match {
+    /* Intuition: The size of square formed at (i)(j) =
+         if (matrix(i)(j) == 0) = 0
+         else 1 + min(sq(i-1)(j), sq(i-1)(j-1), sq(i)(j-1)) */
+    case Array(firstRow, remaining @ _*) =>
+      val maxSquareInFirstRow = if (firstRow contains 1) 1 else 0
+      val (_, maxArea) = remaining.foldLeft((firstRow, maxSquareInFirstRow)) { case ((maxSquaresInPrevRow, maxSoFar), currentRow) =>
+        val maxSquaresInCurrentRow = Array.fill(maxSquaresInPrevRow.length)(currentRow(0))
+        val result = (1 until firstRow.length).foldLeft(Math.max(maxSoFar, currentRow(0))) { case (m, currIdx) =>
+          val currentCell =
+            if (currentRow(currIdx) == 0) 0
+            else 1 + (maxSquaresInPrevRow(currIdx - 1) min maxSquaresInPrevRow(currIdx) min maxSquaresInCurrentRow(currIdx - 1))
+          maxSquaresInCurrentRow(currIdx) = currentCell
+          Math.max(m, currentCell * currentCell)
+        }
+        (maxSquaresInCurrentRow, result)
+      }
+      maxArea
+    case _ => 0
   }
 
   def getDimensions[A](matrix: Array[Array[A]]): (Int, Int) =

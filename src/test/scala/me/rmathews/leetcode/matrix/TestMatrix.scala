@@ -172,4 +172,24 @@ class TestMatrix extends FlatSpec {
     assertResult(2)(actualResult)
   }
 
+  "maximalSquare" should "return square of area 4" in {
+    val input = Array(
+      Array(0, 0, 0, 0),
+      Array(0, 1, 1, 0),
+      Array(0, 1, 1, 0)
+    )
+    val actualResult = Matrix.maximalSquare(input)
+    assertResult(4)(actualResult)
+  }
+
+  "maximalSquare" should "return square of area 1" in {
+    val input = Array(
+      Array(1, 0, 0, 0),
+      Array(0, 1, 1, 0),
+      Array(0, 0, 1, 0)
+    )
+    val actualResult = Matrix.maximalSquare(input)
+    assertResult(1)(actualResult)
+  }
+
 }
