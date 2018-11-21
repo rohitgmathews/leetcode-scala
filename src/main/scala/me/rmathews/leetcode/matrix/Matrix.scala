@@ -1,5 +1,7 @@
 package me.rmathews.leetcode.matrix
 
+import me.rmathews.leetcode.trie.Trie
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 
@@ -74,7 +76,7 @@ object Matrix {
       }
       else acc
     }
-    val (numRows, numCols) = getDimensions(matrix)
+    val (numRows, numCols) = matrix.getDimensions
     go(0, numCols - 1, 0, numRows - 1, List.empty[A])
   }
 
@@ -84,7 +86,7 @@ object Matrix {
     * @param matrix Input matrix
     */
   def getMinimumPathSum(matrix: Matrix[Int]): Int = {
-    val (numRows, numCols) = getDimensions(matrix)
+    val (numRows, numCols) = matrix.getDimensions
     val memo = mutable.Map.empty[(Int, Int), Int]
     for {
       rowIdx <- 0 until numRows
@@ -115,7 +117,7 @@ object Matrix {
     * @return
     */
   def uniquePathsWithObstacles(matrix: Matrix[Boolean]): Int = {
-    val (numRows, numCols) = getDimensions(matrix)
+    val (numRows, numCols) = matrix.getDimensions
     val memo = mutable.Map.empty[(Int, Int), Int]
     for {
       rowIdx <- 0 until numRows
@@ -146,7 +148,7 @@ object Matrix {
     * @return
     */
   def numberOfIslands(matrix: Matrix[Int]): Int = {
-    val (numRows, numCols) = getDimensions(matrix)
+    val (numRows, numCols) = matrix.getDimensions
     val numCells = numRows * numCols
     def getRoots(startIdx: Int,
                  currIdx: Int,
@@ -180,7 +182,7 @@ object Matrix {
     * @param matrix Input matrix
     */
   def captureSurroundedRegions(matrix: Matrix[Char]): Matrix[Char] = {
-    val (numRows, numCols) = getDimensions(matrix)
+    val (numRows, numCols) = matrix.getDimensions
     val numCells = numRows * numCols
     val result = Array.fill(numRows, numCols)('-')
     def isBorderElement(idx: Int): Boolean =
@@ -285,8 +287,60 @@ object Matrix {
     case _ => 0
   }
 
-  def getDimensions[A](matrix: Array[Array[A]]): (Int, Int) =
-    (matrix.length, matrix.headOption.map(_.length).getOrElse(0))
+  /** Returns true if word is present in a grid.
+    *
+    * Reference: [[https://leetcode.com/problems/word-search/]]
+    * @param word Needle
+    * @param grid Haystack
+    */
+  def isWordInGrid(word: String, grid: Matrix[Char]): Boolean = {
+    val (numRows, numCols) = grid.getDimensions
+    val numCells = numRows * numCols
+    def go(gridIdx: Int, wordIdx: Int, visited: Set[Int]): Boolean = {
+      if (gridIdx < 0 || gridIdx >= numCells) false
+      else if (wordIdx == word.length) true
+      else if (grid.get(gridIdx) != word.charAt(wordIdx)) false
+      else {
+        val left = if(!visited.contains(gridIdx - 1)) go(gridIdx - 1, wordIdx + 1, visited + (gridIdx - 1)) else false
+        val right = if(!visited.contains(gridIdx + 1)) go(gridIdx + 1, wordIdx + 1, visited + (gridIdx + 1)) else false
+        val up = if(!visited.contains(gridIdx - numCols)) go(gridIdx - numCols, wordIdx + 1, visited + (gridIdx - numCols)) else false
+        val down = if(!visited.contains(gridIdx + numCols)) go(gridIdx + numCols, wordIdx + 1, visited + (gridIdx + numCols)) else false
+        left || right || up || down
+      }
+    }
+    (0 until numCells).foldLeft(false) { case (found, idx) =>
+      found || go(idx, 0, Set.empty[Int])
+    }
+  }
+
+  /** Returns the set of all words from a dictionary that are present in a grid
+    *
+    * Reference: [[https://leetcode.com/problems/word-search-ii/]]
+    * @param words Dictionary of words to look for
+    * @param grid Input matrix to search withing
+    */
+  def wordsInGrid(words: Set[String], grid: Matrix[Char]): Set[String] = {
+    val (numRows, numCols) = grid.getDimensions
+    val numCells = numRows * numCols
+    val trie = Trie(words)
+    def go(gridIdx: Int, wordSoFar: String, visited: Set[Int], acc: List[String]): List[String] = {
+      if (gridIdx < 0 || gridIdx >= numCells) acc
+      else {
+        val word = wordSoFar + grid.get(gridIdx)
+        if (trie.startsWith(word)) {
+          val newAcc = if (words.contains(word)) word :: acc else acc
+
+          val left = if (!visited.contains(gridIdx - 1)) go(gridIdx - 1, word, visited + gridIdx, newAcc) else newAcc
+          val right = if (!visited.contains(gridIdx + 1)) go(gridIdx + 1, word, visited + gridIdx, left) else left
+          val up = if (!visited.contains(gridIdx - numCols)) go(gridIdx - numCols, word, visited + gridIdx, right) else right
+          val down = if (!visited.contains(gridIdx + numCols)) go(gridIdx + numCols, word, visited + gridIdx, up) else up
+          down
+        }
+        else acc
+      }
+    }
+    (0 until numCells).flatMap(idx => go(idx, "", Set.empty[Int], List.empty[String])).toSet
+  }
 
   private def get2DIndices(idx: Int, numCols: Int): (Int, Int) = (idx / numCols, idx % numCols)
 
@@ -296,10 +350,9 @@ object Matrix {
         val (rowIdx, colIdx) = get2DIndices(idx, matrix.headOption.map(_.length).getOrElse(0))
         matrix(rowIdx)(colIdx)
       }
+      def getDimensions: (Int, Int) =
+        (matrix.length, matrix.headOption.map(_.length).getOrElse(0))
     }
   }
-
-
-
 
 }

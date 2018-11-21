@@ -192,4 +192,37 @@ class TestMatrix extends FlatSpec {
     assertResult(1)(actualResult)
   }
 
+  "isWordInGrid" should "return true when word is present" in {
+    val word = "hello"
+    val input = Array(
+      Array('a', 'e', 'k', 'b', 'd'),
+      Array('a', 'h', 'e', 'r', 'i'),
+      Array('a', 'e', 'l', 'j', 'f'),
+      Array('a', 'o', 'l', 'z', 'k')
+    )
+    assertResult(true)(Matrix.isWordInGrid(word, input))
+  }
+
+  "isWordInGrid" should "return false when word is not present" in {
+    val word = "world"
+    val input = Array(
+      Array('a', 'e', 'k', 'b', 'd'),
+      Array('a', 'h', 'e', 'r', 'i'),
+      Array('a', 'e', 'l', 'j', 'f'),
+      Array('a', 'o', 'l', 'z', 'k')
+    )
+    assertResult(false)(Matrix.isWordInGrid(word, input))
+  }
+
+  "wordsInGrid" should "return all 2 words present in grid" in {
+    val words = Set("hello", "world", "howdy")
+    val input = Array(
+      Array('a', 'e', 'k', 'b', 'd'),
+      Array('d', 'h', 'e', 'r', 'i'),
+      Array('l', 'w', 'l', 'j', 'f'),
+      Array('r', 'o', 'l', 'z', 'k')
+    )
+    assertResult(2)(Matrix.wordsInGrid(words, input).size)
+  }
+
 }
